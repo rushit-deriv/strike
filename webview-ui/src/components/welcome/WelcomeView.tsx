@@ -35,18 +35,15 @@ const WelcomeView = memo(() => {
 	return (
 		<div className="fixed inset-0 p-0 flex flex-col">
 			<div className="h-full px-5 overflow-auto">
-				<h2>Hi, I'm Cline</h2>
+				<h2>Hi, I'm Strike</h2>
 				<div className="flex justify-center my-5">
-					<ClineLogoWhite className="size-16" />
+					<img src="../../assets/icons/icon.png" alt="Strike Ninja" className="size-16" />
 				</div>
 				<p>
-					I can do all kinds of tasks thanks to breakthroughs in{" "}
-					<VSCodeLink href="https://www.anthropic.com/claude/sonnet" className="inline">
-						Claude 4 Sonnet's
-					</VSCodeLink>
-					agentic coding capabilities and access to tools that let me create & edit files, explore complex projects, use
-					a browser, and execute terminal commands <i>(with your permission, of course)</i>. I can even use MCP to
-					create new tools and extend my own capabilities.
+					I'm your elite penetration testing partner, equipped with advanced reconnaissance, vulnerability assessment,
+					and exploitation capabilities. I can perform systematic security testing, create detailed documentation,
+					execute terminal commands, and use specialized security tools <i>(with your permission, of course)</i>. I can
+					even extend my capabilities with MCP tools for advanced security testing.
 				</p>
 
 				<p className="text-[var(--vscode-descriptionForeground)]">

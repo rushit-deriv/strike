@@ -19,7 +19,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 	return (
 		<div className="flex flex-col items-center mb-5">
 			<div className="my-5">
-				<ClineLogoVariable className="size-16" />
+				<img src="../../assets/icons/icon.png" alt="Strike Ninja" className="size-16" />
 			</div>
 			<div className="text-center flex items-center justify-center">
 				<h2 className="m-0 text-[var(--vscode-font-size)]">{"What can I do for you?"}</h2>

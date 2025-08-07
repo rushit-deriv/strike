@@ -35,11 +35,110 @@ body {
 	line-height: 1.25;
 	height: 100%;
 	width: 100%;
+	/* Strike hacker theme - Ultra Dark Aesthetic */
+	--strike-primary: #0a0a0f; /* Ultra dark blue-black */
+	--strike-secondary: #111827; /* Very dark blue-gray */
+	--strike-tertiary: #1f2937; /* Dark blue-gray */
+	--strike-accent: #00ffff; /* Bright cyan glow */
+	--strike-accent-dim: #00d4ff; /* Medium cyan */
+	--strike-accent-darker: #0ea5e9; /* Darker cyan */
+	--strike-danger: #ff3366; /* Bright red for alerts */
+	--strike-success: #00ff88; /* Bright green for success */
+	--strike-warning: #ffaa00; /* Orange for warnings */
+	--strike-text: #ffffff; /* Pure white text */
+	--strike-text-dim: #a1a1aa; /* Dimmed text */
+	--strike-text-darker: #71717a; /* Even dimmer text */
+	--strike-border: #27272a; /* Dark border */
+	--strike-hover: #18181b; /* Hover states */
+
+	/* Override VS Code variables for hacker theme */
+	background-color: var(--strike-primary) !important;
+	color: var(--strike-text) !important;
 }
 
 #root {
 	height: 100%;
 	width: 100%;
+	background: linear-gradient(135deg, var(--strike-primary) 0%, var(--strike-secondary) 50%, var(--strike-tertiary) 100%);
+	position: relative;
+}
+
+/* Matrix-style background effect */
+#root::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image:
+		radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+		radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+		radial-gradient(circle at 40% 80%, rgba(0, 255, 255, 0.03) 0%, transparent 50%);
+	pointer-events: none;
+	z-index: -1;
+}
+
+/* Strike Hacker Theme Enhancements */
+.strike-glow {
+	box-shadow:
+		0 0 10px var(--strike-accent),
+		0 0 20px var(--strike-accent-dim);
+}
+
+.strike-border {
+	border: 1px solid var(--strike-border);
+	background: rgba(15, 23, 42, 0.8);
+}
+
+.strike-button {
+	background: linear-gradient(135deg, var(--strike-secondary), var(--strike-primary));
+	border: 1px solid var(--strike-accent-dim);
+	color: var(--strike-text);
+	transition: all 0.3s ease;
+}
+
+.strike-button:hover {
+	background: linear-gradient(135deg, var(--strike-accent-dim), var(--strike-secondary));
+	box-shadow: 0 0 15px var(--strike-accent);
+	transform: translateY(-1px);
+}
+
+.strike-input {
+	background: rgba(30, 41, 59, 0.7);
+	border: 1px solid var(--strike-border);
+	color: var(--strike-text);
+	caret-color: var(--strike-accent);
+}
+
+.strike-input:focus {
+	border-color: var(--strike-accent);
+	box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+}
+
+/* Matrix-style text effects */
+.strike-matrix {
+	font-family: "Courier New", monospace;
+	color: var(--strike-accent);
+	text-shadow: 0 0 5px var(--strike-accent);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--strike-primary);
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--strike-accent-dim);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--strike-accent);
 }
 
 body.scrollable,

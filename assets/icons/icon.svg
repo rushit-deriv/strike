@@ -1,16 +1,82 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="92px" height="96px" viewBox="0 0 92 96" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <title>Group Copy 2</title>
-    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="icon-copy" transform="translate(-34, -40)" fill="#24292F">
-            <g id="Group-Copy-2" transform="translate(34, 40.5)">
-                <g id="Group-3-Copy-4" transform="translate(0, 0)">
-                    <path d="M65.4492701,16.3 C76.3374701,16.3 85.1635558,25.16479 85.1635558,36.1 L85.1635558,42.7 L90.9027661,54.1647464 C91.4694141,55.2966923 91.4668177,56.6300535 90.8957658,57.7597839 L85.1635558,69.1 L85.1635558,75.7 C85.1635558,86.63554 76.3374701,95.5 65.4492701,95.5 L26.0206986,95.5 C15.1328272,95.5 6.30641291,86.63554 6.30641291,75.7 L6.30641291,69.1 L0.448507752,57.7954874 C-0.14693501,56.6464093 -0.149634367,55.2802504 0.441262896,54.1288283 L6.30641291,42.7 L6.30641291,36.1 C6.30641291,25.16479 15.1328272,16.3 26.0206986,16.3 L65.4492701,16.3 Z M62.9301895,22 L29.189529,22 C19.8723267,22 12.3191987,29.5552188 12.3191987,38.875 L12.3191987,44.5 L7.44288578,53.9634655 C6.84794449,55.1180686 6.85066096,56.4896598 7.45017099,57.6418974 L12.3191987,67 L12.3191987,72.625 C12.3191987,81.9450625 19.8723267,89.5 29.189529,89.5 L62.9301895,89.5 C72.2476729,89.5 79.8005198,81.9450625 79.8005198,72.625 L79.8005198,67 L84.5682187,57.6061395 C85.1432011,56.473244 85.1458141,55.1345713 84.5752587,53.9994398 L79.8005198,44.5 L79.8005198,38.875 C79.8005198,29.5552188 72.2476729,22 62.9301895,22 Z" id="Combined-Shape" fill-rule="nonzero"></path>
-                    <circle id="Oval" cx="45.7349843" cy="11" r="11"></circle>
-                </g>
-                <rect id="Rectangle-Copy" stroke="#24292F" stroke-width="8" x="31" y="44.5" width="5" height="22" rx="2.5"></rect>
-                <rect id="Rectangle-Copy-2" stroke="#24292F" stroke-width="8" x="55" y="44.5" width="5" height="22" rx="2.5"></rect>
-            </g>
+    <title>Strike Ninja Hacker</title>
+    <defs>
+        <linearGradient id="ninjaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#1e293b;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="eyeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00d9ff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#0ea5e9;stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="accentGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    
+    <g id="ninja-hacker" transform="translate(6, 8)">
+        <!-- Ninja Hood/Head -->
+        <path d="M40,5 C50,5 65,15 65,35 C65,45 60,55 55,60 L25,60 C20,55 15,45 15,35 C15,15 30,5 40,5 Z" 
+              fill="url(#ninjaGradient)" stroke="#1e293b" stroke-width="1"/>
+        
+        <!-- Hood Shadow -->
+        <path d="M40,5 C50,5 65,15 65,35 C65,40 63,44 60,47 L55,45 C58,40 60,37 60,35 C60,18 50,10 40,10 C30,10 20,18 20,35 C20,37 22,40 25,45 L20,47 C17,44 15,40 15,35 C15,15 30,5 40,5 Z" 
+              fill="#0f172a" opacity="0.6"/>
+        
+        <!-- Glowing Eyes -->
+        <ellipse cx="32" cy="30" rx="4" ry="6" fill="url(#eyeGlow)" opacity="0.9">
+            <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="48" cy="30" rx="4" ry="6" fill="url(#eyeGlow)" opacity="0.9">
+            <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite"/>
+        </ellipse>
+        
+        <!-- Eye Glow Effect -->
+        <ellipse cx="32" cy="30" rx="6" ry="8" fill="url(#eyeGlow)" opacity="0.3">
+            <animate attributeName="opacity" values="0.3;0.5;0.3" dur="2s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="48" cy="30" rx="6" ry="8" fill="url(#eyeGlow)" opacity="0.3">
+            <animate attributeName="opacity" values="0.3;0.5;0.3" dur="2s" repeatCount="indefinite"/>
+        </ellipse>
+        
+        <!-- Face Mask -->
+        <path d="M25,38 Q40,45 55,38 Q50,50 40,52 Q30,50 25,38 Z" 
+              fill="#0f172a" stroke="#334155" stroke-width="0.5"/>
+        
+        <!-- Shoulder/Body -->
+        <path d="M15,60 Q25,65 40,65 Q55,65 65,60 L70,75 Q40,80 10,75 Z" 
+              fill="url(#ninjaGradient)" stroke="#1e293b" stroke-width="1"/>
+        
+        <!-- Tech Elements - Circuit Lines -->
+        <g stroke="url(#accentGlow)" stroke-width="1" fill="none" opacity="0.7">
+            <path d="M20,20 L25,25 L30,20"/>
+            <path d="M50,20 L55,25 L60,20"/>
+            <path d="M15,50 L20,55 L25,50"/>
+            <path d="M55,50 L60,55 L65,50"/>
         </g>
+        
+        <!-- Tech Nodes -->
+        <circle cx="22" cy="22" r="1.5" fill="url(#accentGlow)" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="58" cy="22" r="1.5" fill="url(#accentGlow)" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="17" cy="52" r="1.5" fill="url(#accentGlow)" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="63" cy="52" r="1.5" fill="url(#accentGlow)" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+        
+        <!-- Subtle Lightning/Strike accent -->
+        <path d="M40,15 L42,25 L38,25 L40,35" stroke="url(#accentGlow)" stroke-width="1" fill="none" opacity="0.4"/>
+        
+        <!-- Hood Edge Details -->
+        <path d="M15,35 Q20,32 25,35" stroke="#334155" stroke-width="0.5" fill="none"/>
+        <path d="M55,35 Q60,32 65,35" stroke="#334155" stroke-width="0.5" fill="none"/>
     </g>
 </svg>
