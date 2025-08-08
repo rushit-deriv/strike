@@ -46,33 +46,83 @@ flowchart TD
   F -->|markdown of target pages| L
 ```
 
-## Core Components
+## From GitHub to Running (Clean Setup)
 
-- `src/core/prompts/system.ts`: Strike doctrine, phased workflow, context usage, PoC guidance
-- `src/core/prompts/model_prompts/claude4.ts`: Model-specific pentest prompt & cost-aware guidance
-- `src/core/pentest/DocumentationService.ts`: Creates/updates pentest docs; artifact saver; journaling API
-- `src/core/context/context-management/ContextManager.ts`: Builds compact digest from pentest docs and appends to system prompt
-- `src/core/task/index.ts`: Injects digest into system prompt per request
-- `src/core/task/ToolExecutor.ts`: On `web_fetch`, saves content as artifact, journals action, returns short summary with path
+Prereqs
+- Node 18.x or 20.x (recommended: 18.19+). Use `nvm` if possible
+- VS Code 1.93+
+- Git and Git LFS
+- macOS: Homebrew installed for optional pentest tools
 
-## Getting Started
-
-Prerequisites: Node 18+, VS Code 1.93+, git-lfs (if needed).
-
-1) Install dependencies
+1) Clone and switch to the `pentest-features` branch
 
 ```bash
-npm install
+# Clone
+git clone <YOUR_FORK_OR_REPO_URL> Strike
+cd Strike/cline
+
+# Ensure Git LFS (first time on a machine)
+brew install git-lfs  # macOS
+# or: sudo apt-get install git-lfs  # Debian/Ubuntu
+# or: sudo pacman -S git-lfs        # Arch
+
+git lfs install
+# Pull LFS files if needed
+git lfs pull
+
+# Switch branch
+git checkout pentest-features
 ```
 
-2) Build
+2) Install dependencies (root and webview)
 
 ```bash
+# Root
+npm install
+
+# Webview
+cd webview-ui
+npm install
+cd ..
+```
+
+3) Build webview and extension
+
+```bash
+# Build the webview (Vite)
+npm run build:webview
+
+# Build the extension (esbuild)
 npm run build
 ```
 
-3) Launch the extension
-- Press F5 in VS Code to run the extension in a new window, or package as VSIX if needed.
+4) Launch in VS Code (Extension Development Host)
+- Open the `Strike/cline` folder in VS Code
+- Press F5 (Run Extension). A new VS Code window opens with Strike installed
+
+Alternative: Package and install as VSIX
+
+```bash
+# Create VSIX
+npx vsce package --no-dependencies
+# Install the VSIX in VS Code: Command Palette → "Extensions: Install from VSIX..."
+```
+
+5) Configure your model/API provider
+- In the Extension Host window, open Strike/Cline settings
+- Provide the required API key(s) for your model provider and enable browser/tool usage as desired
+
+6) (Optional) Install pentest CLI tools
+
+```bash
+# macOS (Homebrew), Debian/Ubuntu (apt), or Arch (pacman) supported by the script
+npm run pentest:install
+npm run pentest:verify
+```
+
+Notes
+- Strike writes documentation to `docs/pentest/` in your workspace (journal, attack surface, findings, artifacts)
+- Large outputs and fetched pages are saved under `docs/pentest/artifacts/`, and referenced in the conversation to save tokens
 
 ## Usage
 
@@ -90,6 +140,34 @@ npm run build
 - `attack-surface.md`: host → ports → tech → auth → notes
 - `findings.md`: structured entries (severity, impact, steps, PoC, remediation)
 - `artifacts/`: large outputs and research files
+
+## Troubleshooting
+
+- Missing Git LFS artifacts
+  - Install and initialize: `git lfs install` then `git lfs pull`
+  - On macOS: `brew install git-lfs`
+
+- Webview not updating
+  - Rebuild webview: `npm run build:webview`
+  - Then rebuild extension: `npm run build`
+
+- Node version issues
+  - Use Node 18.x (recommended). With `nvm`: `nvm install 18 && nvm use 18`
+
+- Packaging fails (vsce not found)
+  - Use `npx vsce package --no-dependencies` to avoid global install
+
+- Permissions or noisy network scans
+  - Strike defaults to stealth; it will ask before high-impact actions. Only test within authorized scope.
+
+## Core Components
+
+- `src/core/prompts/system.ts`: Strike doctrine, phased workflow, context usage, PoC guidance
+- `src/core/prompts/model_prompts/claude4.ts`: Model-specific pentest prompt & cost-aware guidance
+- `src/core/pentest/DocumentationService.ts`: Creates/updates pentest docs; artifact saver; journaling API
+- `src/core/context/context-management/ContextManager.ts`: Builds compact digest from pentest docs and appends to system prompt
+- `src/core/task/index.ts`: Injects digest into system prompt per request
+- `src/core/task/ToolExecutor.ts`: On `web_fetch`, saves content as artifact, journals action, returns short summary with path
 
 ## Context Window Strategy
 
