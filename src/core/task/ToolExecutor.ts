@@ -56,6 +56,7 @@ import { MessageStateHandler } from "./message-state"
 import { AutoApprove } from "./tools/autoApprove"
 import { showNotificationForApprovalIfAutoApprovalEnabled } from "./utils"
 import { Mode } from "@shared/storage/types"
+import { DocumentationService } from "@/core/pentest/DocumentationService"
 
 export class ToolExecutor {
 	private autoApprover: AutoApprove
@@ -2121,11 +2122,24 @@ export class ToolExecutor {
 						const markdownContent = await this.urlContentFetcher.urlToMarkdown(url)
 						await this.urlContentFetcher.closeBrowser()
 
+						// Persist large content as artifact and append a short journal entry
+						try {
+							const doc = new DocumentationService(this.cwd)
+							const artifactPath = await doc.saveArtifact(markdownContent, `webfetch-${new URL(url).hostname}.md`)
+							await doc.appendJournal({
+								phase: "RECON",
+								action: "web_fetch",
+								command: `fetch ${url}`,
+								resultSummary: `Saved page content to ${artifactPath}`,
+								evidencePaths: [artifactPath],
+							})
+						} catch {}
+
 						// TODO: Implement secondary AI call to process markdownContent with prompt
 						// For now, returning markdown directly.
 						// This will be a significant sub-task.
 						// Placeholder for processed summary:
-						const processedSummary = `Fetched Markdown for ${url}:\n\n${markdownContent}`
+						const processedSummary = `Fetched Markdown for ${url} (saved to docs).\n\nFirst 800 chars:\n\n${markdownContent.slice(0, 800)}...\n\nSee docs/pentest/artifacts for full content.`
 
 						this.pushToolResult(formatResponse.toolResult(processedSummary), block)
 						await this.saveCheckpoint()
