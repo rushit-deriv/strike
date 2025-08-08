@@ -2090,7 +2090,7 @@ export class ToolExecutor {
 							)
 						} else {
 							showNotificationForApprovalIfAutoApprovalEnabled(
-								`Cline wants to fetch content from ${url}`,
+								`Strike wants to fetch content from ${url}`,
 								this.autoApprovalSettings.enabled,
 								this.autoApprovalSettings.enableNotifications,
 							)

@@ -3,7 +3,7 @@ import { useEffect, useState, memo } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { validateApiConfiguration } from "@/utils/validate"
 import ApiOptions from "@/components/settings/ApiOptions"
-import ClineLogoWhite from "@/assets/ClineLogoWhite"
+import NinjaInlineIcon from "@/assets/NinjaInlineIcon"
 import { AccountServiceClient, StateServiceClient } from "@/services/grpc-client"
 import { EmptyRequest, BooleanRequest } from "@shared/proto/cline/common"
 
@@ -37,7 +37,7 @@ const WelcomeView = memo(() => {
 			<div className="h-full px-5 overflow-auto">
 				<h2>Hi, I'm Strike</h2>
 				<div className="flex justify-center my-5">
-					<img src="../../assets/icons/icon.png" alt="Strike Ninja" className="size-16" />
+					<NinjaInlineIcon width={64} height={64} />
 				</div>
 				<p>
 					I'm your elite penetration testing partner, equipped with advanced reconnaissance, vulnerability assessment,

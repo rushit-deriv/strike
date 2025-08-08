@@ -609,8 +609,8 @@ export const ChatRowContent = memo(
 									toolIcon("sign-out", "yellow", -90, "This URL is external")}
 								<span style={{ fontWeight: "bold" }}>
 									{message.type === "ask"
-										? "Cline wants to fetch content from this URL:"
-										: "Cline fetched content from this URL:"}
+										? "Strike wants to fetch content from this URL:"
+										: "Strike fetched content from this URL:"}
 								</span>
 							</div>
 							<div

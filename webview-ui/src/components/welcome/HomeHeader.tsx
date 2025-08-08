@@ -1,7 +1,7 @@
-import ClineLogoVariable from "@/assets/ClineLogoVariable"
 import HeroTooltip from "@/components/common/HeroTooltip"
 import { UiServiceClient } from "@/services/grpc-client"
 import { EmptyRequest } from "@shared/proto/cline/common"
+import NinjaInlineIcon from "@/assets/NinjaInlineIcon"
 
 interface HomeHeaderProps {
 	shouldShowQuickWins?: boolean
@@ -19,15 +19,15 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 	return (
 		<div className="flex flex-col items-center mb-5">
 			<div className="my-5">
-				<img src="../../assets/icons/icon.png" alt="Strike Ninja" className="size-16" />
+				<NinjaInlineIcon width={64} height={64} />
 			</div>
 			<div className="text-center flex items-center justify-center">
-				<h2 className="m-0 text-[var(--vscode-font-size)]">{"What can I do for you?"}</h2>
+				<h2 className="m-0 text-[var(--vscode-font-size)]">{"What can I attack for you?"}</h2>
 				<HeroTooltip
 					placement="bottom"
 					className="max-w-[300px]"
 					content={
-						"I can develop software step-by-step by editing files, exploring projects, running commands, and using browsers. I can even extend my capabilities with MCP tools to assist beyond basic code completion."
+						"Strike performs recon-first, stealthy testing. It uses CLI tools and the browser efficiently (when it adds clear value), and logs every attempt to markdown for a full audit trail."
 					}>
 					<span
 						className="codicon codicon-info ml-2 cursor-pointer"
