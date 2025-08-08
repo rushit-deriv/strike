@@ -180,10 +180,39 @@ export class ContextManager {
 			conversationHistoryDeletedRange,
 		)
 
+		// Build a compact digest from docs/pentest if present
+		let compactDigest = ""
+		try {
+			const workspaceRoot = process.cwd()
+			const docsRoot = path.join(workspaceRoot, "docs", "pentest")
+			const [attackSurface, findings, journal] = await Promise.allSettled([
+				fs.readFile(path.join(docsRoot, "attack-surface.md"), "utf8"),
+				fs.readFile(path.join(docsRoot, "findings.md"), "utf8"),
+				fs.readFile(path.join(docsRoot, "journal.md"), "utf8"),
+			])
+
+			const pickTail = (text: string, maxChars = 1200) => (text.length <= maxChars ? text : text.slice(-maxChars))
+
+			const parts: string[] = []
+			if (attackSurface.status === "fulfilled" && attackSurface.value.trim()) {
+				parts.push(`# Attack Surface (tail)\n${pickTail(attackSurface.value, 1500)}`)
+			}
+			if (findings.status === "fulfilled" && findings.value.trim()) {
+				parts.push(`# Recent Findings (tail)\n${pickTail(findings.value, 1500)}`)
+			}
+			if (journal.status === "fulfilled" && journal.value.trim()) {
+				parts.push(`# Recent Journal (tail)\n${pickTail(journal.value, 1200)}`)
+			}
+			if (parts.length) {
+				compactDigest = `\n====\nCOMPACT CONTEXT DIGEST (docs/pentest)\n\n${parts.join("\n\n")}\n`
+			}
+		} catch {}
+
 		return {
 			conversationHistoryDeletedRange: conversationHistoryDeletedRange,
 			updatedConversationHistoryDeletedRange: updatedConversationHistoryDeletedRange,
 			truncatedConversationHistory: truncatedConversationHistory,
+			compactDigest,
 		}
 	}
 

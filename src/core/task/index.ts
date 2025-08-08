@@ -1775,6 +1775,11 @@ export class Task {
 			// saves task history item which we use to keep track of conversation history deleted range
 		}
 
+		// Append compact digest to the system prompt if present
+		if (contextManagementMetadata.compactDigest) {
+			systemPrompt += `\n${contextManagementMetadata.compactDigest}`
+		}
+
 		const stream = this.api.createMessage(systemPrompt, contextManagementMetadata.truncatedConversationHistory)
 
 		const iterator = stream[Symbol.asyncIterator]()
