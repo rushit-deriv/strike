@@ -80,6 +80,12 @@ export class UrlContentFetcher {
 		// use cheerio to parse and clean up the HTML
 		const $ = cheerio.load(content)
 		$("script, style, nav, footer, header").remove()
+		// Replace images with alt text or src references to avoid embedding base64 heavy content
+		$("img").each((_, el) => {
+			const alt = $(el).attr("alt") || "image"
+			const src = $(el).attr("src") || ""
+			$(el).replaceWith(`<p>![${alt}](${src})</p>`)
+		})
 
 		// convert cleaned HTML to markdown
 		const turndownService = new TurndownService()

@@ -493,9 +493,13 @@ export class BrowserSession {
 		}
 
 		const screenshotType = this.useWebp ? "webp" : "png"
+		// Reduce screenshot size (quality/scale) to avoid oversized payloads
+		const clipOptions = undefined // potential future: downscale/clip
 		let screenshotBase64 = await this.page.screenshot({
 			...options,
 			type: screenshotType,
+			// quality applies to JPEG/WebP only; PNG ignores it
+			quality: this.useWebp ? 70 : undefined,
 		})
 		let screenshot = `data:image/${screenshotType};base64,${screenshotBase64}`
 
@@ -508,6 +512,12 @@ export class BrowserSession {
 			})
 			screenshot = `data:image/png;base64,${screenshotBase64}`
 		}
+
+		// Limit screenshot size for model safety (e.g., Bedrock 20-image cap)
+		// Attach current URL to help downstream compact digests
+		const currentUrl = this.page.url()
+		this.browserActions.push({ type: "screenshot" as any })
+		return { screenshot, logs: logs.join("\n"), currentUrl }
 
 		if (!screenshotBase64) {
 			// Capture error telemetry

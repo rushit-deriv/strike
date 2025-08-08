@@ -60,8 +60,17 @@ Otherwise, if you have not completed the task and do not need additional informa
 		toolResultOutput.push(textBlock)
 
 		if (images && images.length > 0) {
-			const imageBlocks: Anthropic.ImageBlockParam[] = formatImagesIntoBlocks(images)
+			// Safety: cap images to 4 per response to avoid provider limits (e.g., Bedrock 20 docs)
+			const capped = images.slice(0, 4)
+			const imageBlocks: Anthropic.ImageBlockParam[] = formatImagesIntoBlocks(capped)
 			toolResultOutput.push(...imageBlocks)
+			const skipped = images.length - capped.length
+			if (skipped > 0) {
+				toolResultOutput.push({
+					type: "text",
+					text: `\n[${skipped} additional images omitted to comply with provider limits]`,
+				} as Anthropic.TextBlockParam)
+			}
 		}
 
 		if (fileString) {
