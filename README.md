@@ -108,10 +108,6 @@ npx vsce package --no-dependencies
 # Install the VSIX in VS Code: Command Palette → "Extensions: Install from VSIX..."
 ```
 
-5) Optional: Install bundled knowledge base on first launch
-- On first activation, Strike will offer to install any bundled KB from `assets/kb/` into your workspace at `docs/pentest/kb/`, and generate an `index.json`.
-- To bundle your own curated markdowns, add them under `cline/assets/kb/` before packaging the VSIX.
-
 5) Configure your model/API provider
 - In the Extension Host window, open Strike/Cline settings
 - Provide the required API key(s) for your model provider and enable browser/tool usage as desired

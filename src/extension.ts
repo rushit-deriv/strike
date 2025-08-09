@@ -119,14 +119,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	telemetryService.captureExtensionActivated()
 
-	// Offer to install bundled KB into workspace
-	try {
-		const { installBundledKnowledgeBase } = await import("./core/kb/KnowledgeBaseInstaller")
-		await installBundledKnowledgeBase(context)
-	} catch (e) {
-		// Non-fatal; ignore if asset not present
-	}
-
 	context.subscriptions.push(
 		vscode.commands.registerCommand("cline.plusButtonClicked", async (webview: any) => {
 			console.log("[DEBUG] plusButtonClicked", webview)
