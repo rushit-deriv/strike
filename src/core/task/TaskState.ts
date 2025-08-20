@@ -57,4 +57,29 @@ export class TaskState {
 	abort: boolean = false
 	didFinishAbortingStream = false
 	abandoned = false
+
+	// Pentest Orchestration State
+	/**
+	 * Indicates whether the initial reconnaissance phase has been completed
+	 * and a post-recon routing decision can be made.
+	 */
+	reconCompleted: boolean = false
+
+	/**
+	 * Current attack mode selected by the agent after recon.
+	 * Examples: "baseline", "xss", "sqli", "idor", "ssrf", "lfi_rfi",
+	 * "command_injection", "auth_bypass", "upload_bypass", "deserialization",
+	 * "jwt", "waf_bypass", "csp_bypass".
+	 */
+	attackMode?: string
+
+	/**
+	 * Signals detected protective controls observed during recon or attacks
+	 * that should influence subsequent payload crafting.
+	 */
+	detectedProtections: {
+		wafVendorOrSignal?: string
+		cspPolicySnippet?: string
+		rateLimitingObserved?: boolean
+	} = {}
 }

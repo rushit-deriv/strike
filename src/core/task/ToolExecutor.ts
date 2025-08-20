@@ -57,9 +57,11 @@ import { AutoApprove } from "./tools/autoApprove"
 import { showNotificationForApprovalIfAutoApprovalEnabled } from "./utils"
 import { Mode } from "@shared/storage/types"
 import { DocumentationService } from "@/core/pentest/DocumentationService"
+import { StrikeOrchestrator } from "@/core/intelligence/StrikeOrchestrator"
 
 export class ToolExecutor {
 	private autoApprover: AutoApprove
+	private strikeOrchestrator: StrikeOrchestrator
 
 	// Auto-approval methods using the AutoApprove class
 	private shouldAutoApproveTool(toolName: ToolUseName): boolean | [boolean, boolean] {
@@ -123,6 +125,7 @@ export class ToolExecutor {
 		private doesLatestTaskCompletionHaveNewChanges: () => Promise<boolean>,
 	) {
 		this.autoApprover = new AutoApprove(autoApprovalSettings)
+		this.strikeOrchestrator = new StrikeOrchestrator(cwd, this)
 	}
 
 	/**
@@ -181,6 +184,26 @@ export class ToolExecutor {
 
 	private toolDescription = (block: ToolUse) => {
 		switch (block.name) {
+			// No-op: prompt-level routing; we journal in journal.md
+			case "set_attack_mode": {
+				const mode = block.params.mode
+				const rationale = block.params.rationale
+				return `Set attack mode: ${mode || "(missing)"}${rationale ? ` | Rationale: ${rationale}` : ""}`
+			}
+			case "record_detection": {
+				const waf = block.params.wafVendorOrSignal
+				const csp = block.params.cspPolicySnippet
+				const rl = block.params.rateLimitingObserved
+				const notes = block.params.notes
+				const lines = [
+					waf ? `WAF: ${waf}` : undefined,
+					csp ? `CSP: ${csp}` : undefined,
+					rl !== undefined ? `Rate limiting: ${rl}` : undefined,
+					notes ? `Notes: ${notes}` : undefined,
+				].filter(Boolean) as string[]
+				return `Record detection: ${lines.join(" | ")}`
+			}
+			// description-only mapping; execution is handled in main tool switch
 			case "execute_command":
 				return `[${block.name} for '${block.params.command}']`
 			case "read_file":
@@ -221,6 +244,10 @@ export class ToolExecutor {
 				return `[${block.name} for '${block.params.path}']`
 			case "web_fetch":
 				return `[${block.name} for '${block.params.url}']`
+			case "tech_fingerprint":
+				return `[${block.name} for '${block.params.url}']`
+			case "web_search":
+				return `[${block.name}]`
 		}
 	}
 
@@ -1817,6 +1844,7 @@ export class ToolExecutor {
 					break
 				}
 			}
+			// set_attack_mode and record_detection are handled in prompt-level behavior; no execution side-effects here
 			case "condense": {
 				const context: string | undefined = block.params.context
 				try {
@@ -2148,6 +2176,216 @@ export class ToolExecutor {
 				} catch (error) {
 					await this.urlContentFetcher.closeBrowser() // Ensure browser is closed on error
 					await this.handleError("fetching web content", error, block)
+					await this.saveCheckpoint()
+					break
+				}
+			}
+			case "tech_fingerprint": {
+				const url: string | undefined = block.params.url
+				const maxBytesRaw = block.params.maxBytes
+				const maxBytes = maxBytesRaw ? Number(maxBytesRaw) || 20480 : 20480
+				try {
+					if (block.partial) {
+						const partialMessage = JSON.stringify({
+							tool: "readFile" as const,
+							path: this.removeClosingTag(block, "url", url),
+							content: `Fingerprinting URL: ${this.removeClosingTag(block, "url", url)}`,
+						} satisfies ClineSayTool)
+						if (this.shouldAutoApproveTool("execute_command" as ToolUseName)) {
+							this.removeLastPartialMessageIfExistsWithType("ask", "tool")
+							await this.say("tool", partialMessage, undefined, undefined, block.partial)
+						} else {
+							this.removeLastPartialMessageIfExistsWithType("say", "tool")
+							await this.ask("tool", partialMessage, block.partial).catch(() => {})
+						}
+						break
+					}
+					if (!url) {
+						this.taskState.consecutiveMistakeCount++
+						this.pushToolResult(await this.sayAndCreateMissingParamError("tech_fingerprint", "url"), block)
+						await this.saveCheckpoint()
+						break
+					}
+
+					const curlCmd = `curl -sSL -D - --max-time 15 --user-agent "Mozilla/5.0" ${JSON.stringify(
+						url,
+					)} | awk 'BEGIN{h=1} {if(h&&$0 ~ /^[[:space:]]*$/)h=0; if(h) print; if(!h){b=b$0"\n"; if(length(b) > ${maxBytes}) exit}} END{print "\n\n[BODY_SNIPPET]"; print substr(b,1,${maxBytes})}'`
+
+					const [userRejected, execResult] = await this.executeCommandTool(curlCmd)
+					if (userRejected) {
+						this.pushToolResult(formatResponse.toolDenied(), block)
+						await this.saveCheckpoint()
+						break
+					}
+					this.pushToolResult(formatResponse.toolResult(String(execResult ?? "")), block)
+					await this.saveCheckpoint()
+					break
+				} catch (error) {
+					await this.handleError("fingerprinting target", error, block)
+					await this.saveCheckpoint()
+					break
+				}
+			}
+			case "web_search": {
+				const query: string | undefined = block.params.query
+				const site: string | undefined = block.params.site
+				const maxResultsRaw = block.params.maxResults
+				const maxResults = maxResultsRaw ? Number(maxResultsRaw) || 10 : 10
+				try {
+					if (block.partial) {
+						const partialMessage = JSON.stringify({
+							tool: "searchFiles" as const,
+							regex: this.removeClosingTag(block, "query", query) || "",
+							content: `Searching: ${this.removeClosingTag(block, "query", query)} ${site ? `site:${site}` : ""}`,
+						} satisfies ClineSayTool)
+						if (this.shouldAutoApproveTool("execute_command" as ToolUseName)) {
+							this.removeLastPartialMessageIfExistsWithType("ask", "tool")
+							await this.say("tool", partialMessage, undefined, undefined, block.partial)
+						} else {
+							this.removeLastPartialMessageIfExistsWithType("say", "tool")
+							await this.ask("tool", partialMessage, block.partial).catch(() => {})
+						}
+						break
+					}
+					if (!query) {
+						this.taskState.consecutiveMistakeCount++
+						this.pushToolResult(await this.sayAndCreateMissingParamError("web_search", "query"), block)
+						await this.saveCheckpoint()
+						break
+					}
+
+					const encoded = encodeURIComponent(site ? `${query} site:${site}` : query)
+					const cmd = `curl -sL --max-time 15 "https://duckduckgo.com/html/?q=${encoded}" | awk '/result__a/{print}' | sed -E 's/<[^>]*>//g' | head -n ${maxResults}`
+					const [userRejected, execResult] = await this.executeCommandTool(cmd)
+					if (userRejected) {
+						this.pushToolResult(formatResponse.toolDenied(), block)
+						await this.saveCheckpoint()
+						break
+					}
+					this.pushToolResult(formatResponse.toolResult(String(execResult ?? "")), block)
+					await this.saveCheckpoint()
+					break
+				} catch (error) {
+					await this.handleError("web searching", error, block)
+					await this.saveCheckpoint()
+					break
+				}
+			}
+			case "set_attack_mode": {
+				const mode: string | undefined = block.params.mode
+				const rationale: string | undefined = block.params.rationale
+
+				try {
+					if (block.partial) {
+						break
+					}
+
+					if (!mode) {
+						this.taskState.consecutiveMistakeCount++
+						this.pushToolResult(await this.sayAndCreateMissingParamError("set_attack_mode", "mode"), block)
+						await this.saveCheckpoint()
+						break
+					}
+
+					// Enforce recon gate
+					const doc = new DocumentationService(this.cwd)
+					if (!(await doc.hasReconDetails(200))) {
+						this.taskState.consecutiveMistakeCount++
+						const errorMessage = `Reconnaissance is not sufficiently detailed in docs/pentest/recon.md. Please complete recon and ensure recon.md has at least 200 bytes of content before setting an attack mode.`
+						this.pushToolResult(formatResponse.toolError(errorMessage), block)
+						await doc.appendJournal({
+							phase: "RECON",
+							action: "set_attack_mode_blocked",
+							resultSummary: `Attempted to set attack mode to '${mode}' but recon.md was insufficient.`,
+							command: `set_attack_mode mode=${mode} rationale=${rationale}`,
+						})
+						await this.saveCheckpoint()
+						break
+					}
+
+					this.taskState.consecutiveMistakeCount = 0
+					this.taskState.attackMode = mode
+					this.taskState.reconCompleted = true
+
+					// Initialize STRIKE session if not already started
+					if (!this.strikeOrchestrator.getCurrentSession()) {
+						await this.strikeOrchestrator.startSession("unknown")
+					}
+
+					// Get STRIKE recommendations for this mode
+					const recommendations = this.strikeOrchestrator.getIntelligentRecommendations()
+
+					this.pushToolResult(
+						formatResponse.toolResult(
+							`Attack mode set to '${mode}'.${rationale ? `\nRationale: ${rationale}` : ""}\n\nSTRIKE Recommendations:\n${recommendations.reasoning.join("\n")}\nConfidence: ${(recommendations.confidence * 100).toFixed(1)}%`,
+						),
+						block,
+					)
+
+					await doc.appendJournal({
+						phase: "ATTACK_MODE_SWITCH",
+						action: "set_attack_mode",
+						resultSummary: `Switched to attack mode: ${mode}. Rationale: ${rationale || "N/A"}`,
+						command: `set_attack_mode mode=${mode} rationale=${rationale}`,
+					})
+					await this.saveCheckpoint()
+					break
+				} catch (error) {
+					await this.handleError("setting attack mode", error, block)
+					await this.saveCheckpoint()
+					break
+				}
+			}
+			case "record_detection": {
+				const wafVendorOrSignal: string | undefined = block.params.wafVendorOrSignal
+				const cspPolicySnippet: string | undefined = block.params.cspPolicySnippet
+				const rateLimitingObserved: boolean | undefined = block.params.rateLimitingObserved === "true"
+				const notes: string | undefined = block.params.notes
+
+				try {
+					if (block.partial) {
+						break
+					}
+
+					const doc = new DocumentationService(this.cwd)
+					const detectionSummary = []
+					if (wafVendorOrSignal) {
+						detectionSummary.push(`WAF: ${wafVendorOrSignal}`)
+					}
+					if (cspPolicySnippet) {
+						detectionSummary.push(`CSP: ${cspPolicySnippet}`)
+					}
+					if (rateLimitingObserved) {
+						detectionSummary.push(`Rate Limiting: Observed`)
+					}
+					if (notes) {
+						detectionSummary.push(`Notes: ${notes}`)
+					}
+
+					this.taskState.detectedProtections = {
+						wafVendorOrSignal: wafVendorOrSignal,
+						cspPolicySnippet: cspPolicySnippet,
+						rateLimitingObserved: rateLimitingObserved,
+					}
+
+					// Record with STRIKE for adaptive learning
+					if (this.strikeOrchestrator.getCurrentSession()) {
+						// This would integrate with the adaptive learning system
+					}
+
+					this.pushToolResult(formatResponse.toolResult(`Recorded detections: ${detectionSummary.join(", ")}`), block)
+
+					await doc.appendJournal({
+						phase: "RECON",
+						action: "record_detection",
+						resultSummary: `Detected: ${detectionSummary.join(", ")}`,
+						command: `record_detection wafVendorOrSignal=${wafVendorOrSignal} cspPolicySnippet=${cspPolicySnippet} rateLimitingObserved=${rateLimitingObserved} notes=${notes}`,
+					})
+					await doc.updateAttackSurface(detectionSummary)
+					await this.saveCheckpoint()
+					break
+				} catch (error) {
+					await this.handleError("recording detection", error, block)
 					await this.saveCheckpoint()
 					break
 				}

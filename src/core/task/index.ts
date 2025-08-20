@@ -1714,6 +1714,14 @@ export class Task {
 			isClaude4ModelFamily(this.api) || isGemini2dot5ModelFamily(this.api) || isGrok4ModelFamily(this.api)
 		let systemPrompt = await SYSTEM_PROMPT(this.cwd, supportsBrowserUse, this.mcpHub, this.browserSettings, isNextGenModel)
 
+		// Append attack mode section (STRIKE-style routing) after base system prompt
+		try {
+			const { buildAttackModeSection } = await import("@/core/prompts/attackModes")
+			systemPrompt += buildAttackModeSection(this.taskState.attackMode, this.taskState.detectedProtections)
+		} catch (e) {
+			// non-fatal if dynamic import fails
+		}
+
 		const preferredLanguage = getLanguageKey(this.preferredLanguage as LanguageDisplay)
 		const preferredLanguageInstructions =
 			preferredLanguage && preferredLanguage !== DEFAULT_LANGUAGE_SETTINGS

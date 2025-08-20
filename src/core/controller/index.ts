@@ -738,6 +738,13 @@ export class Controller {
 			welcomeViewCompleted: welcomeViewCompleted as boolean, // Can be undefined but is set to either true or false by the migration that runs on extension launch in extension.ts
 			mcpResponsesCollapsed,
 			terminalOutputLineLimit,
+			uiAttackStatus: this.task
+				? {
+						reconCompleted: this.task.taskState.reconCompleted,
+						attackMode: this.task.taskState.attackMode,
+						detectedProtections: this.task.taskState.detectedProtections,
+					}
+				: undefined,
 		}
 	}
 
