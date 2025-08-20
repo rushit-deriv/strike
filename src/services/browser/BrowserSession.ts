@@ -515,29 +515,27 @@ export class BrowserSession {
 
 		// Limit screenshot size for model safety (e.g., Bedrock 20-image cap)
 		// Attach current URL to help downstream compact digests
-		const currentUrl = this.page.url()
-		this.browserActions.push({ type: "screenshot" as any })
+		const currentUrl = this.page?.url?.() || ""
+		this.browserActions.push("screenshot")
 		return { screenshot, logs: logs.join("\n"), currentUrl }
 
 		if (!screenshotBase64) {
 			// Capture error telemetry
-			if (this.taskId) {
-				telemetryService.captureBrowserError(this.taskId, "screenshot_error", "Failed to take screenshot", {
-					isRemote: this.isConnectedToRemote,
-					action: this.browserActions[this.browserActions.length - 1],
-				})
-			}
+			telemetryService.captureBrowserError(this.taskId || "", "screenshot_error", "Failed to take screenshot", {
+				isRemote: this.isConnectedToRemote,
+				action: this.browserActions[this.browserActions.length - 1],
+			})
 			throw new Error("Failed to take screenshot.")
 		}
 
 		// this.page.removeAllListeners() <- causes the page to crash!
-		this.page.off("console", consoleListener)
-		this.page.off("pageerror", errorListener)
+		this.page?.off?.("console", consoleListener)
+		this.page?.off?.("pageerror", errorListener)
 
 		return {
 			screenshot,
 			logs: logs.join("\n"),
-			currentUrl: this.page.url(),
+			currentUrl: this.page?.url?.() || "",
 			currentMousePosition: this.currentMousePosition,
 		}
 	}

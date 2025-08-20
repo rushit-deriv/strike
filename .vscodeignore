@@ -36,6 +36,30 @@ buf.yaml
 .changeset/
 .clinerules/
 
+# Additional pruning to reduce false-positive secret scans and package size
+# Logs and temp
+**/*.log
+npm-debug.log*
+yarn-error.log*
+
+# Docs and caches not needed at runtime
+docs/**
+locales/**
+walkthrough/**
+kb-cache/**
+
+# Test artifacts
+**/__tests__/**
+**/test/**
+**/tests/**
+**/fixtures/**
+**/e2e/**
+
+# Keep compiled output and required assets
+!dist/**
+!dist/**/*
+!assets/icons/**
+
 # Ignore all webview-ui files except the build directory (https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/frameworks/hello-world-react-cra/.vscodeignore)
 webview-ui/src/**
 webview-ui/public/**

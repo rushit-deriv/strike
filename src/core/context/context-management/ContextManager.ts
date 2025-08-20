@@ -185,23 +185,31 @@ export class ContextManager {
 		try {
 			const workspaceRoot = process.cwd()
 			const docsRoot = path.join(workspaceRoot, "docs", "pentest")
-			const [attackSurface, findings, journal] = await Promise.allSettled([
+			const [attackSurface, findings, journal, recon] = await Promise.allSettled([
 				fs.readFile(path.join(docsRoot, "attack-surface.md"), "utf8"),
 				fs.readFile(path.join(docsRoot, "findings.md"), "utf8"),
 				fs.readFile(path.join(docsRoot, "journal.md"), "utf8"),
+				fs.readFile(path.join(docsRoot, "recon.md"), "utf8"),
 			])
 
-			const pickTail = (text: string, maxChars = 1200) => (text.length <= maxChars ? text : text.slice(-maxChars))
+			// Scale tail budgets based on model context window size to minimize upstream token usage
+			const { maxAllowedSize } = getContextWindowInfo(api)
+			const budget = Math.max(400, Math.floor(maxAllowedSize / 300)) // ~0.3% of window per section
+			const pickTail = (text: string, maxChars = budget) => (text.length <= maxChars ? text : text.slice(-maxChars))
 
 			const parts: string[] = []
+			if (recon.status === "fulfilled" && recon.value.trim()) {
+				parts.push(`# Recon (tail)\n${pickTail(recon.value)}`)
+			}
 			if (attackSurface.status === "fulfilled" && attackSurface.value.trim()) {
-				parts.push(`# Attack Surface (tail)\n${pickTail(attackSurface.value, 1500)}`)
+				parts.push(`# Attack Surface (tail)\n${pickTail(attackSurface.value)}`)
 			}
 			if (findings.status === "fulfilled" && findings.value.trim()) {
-				parts.push(`# Recent Findings (tail)\n${pickTail(findings.value, 1500)}`)
+				parts.push(`# Recent Findings (tail)\n${pickTail(findings.value)}`)
 			}
 			if (journal.status === "fulfilled" && journal.value.trim()) {
-				parts.push(`# Recent Journal (tail)\n${pickTail(journal.value, 1200)}`)
+				// journal often grows fastest; trim slightly more aggressively
+				parts.push(`# Recent Journal (tail)\n${pickTail(journal.value, Math.max(300, Math.floor(budget * 0.8)))}`)
 			}
 			if (parts.length) {
 				compactDigest = `\n====\nCOMPACT CONTEXT DIGEST (docs/pentest)\n\n${parts.join("\n\n")}\n`

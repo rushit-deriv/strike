@@ -16,34 +16,92 @@ Strike transforms the Cline extension into an operator-grade penetration testing
 ## Architecture Overview
 
 ```mermaid
-flowchart TD
-  subgraph "VS Code Extension"
-    A[Controller] --> B[Task]
-    B --> C[ToolExecutor]
-    B --> D[ContextManager]
-    C --> E[BrowserSession]
-    C --> F[UrlContentFetcher]
-    B --> G[API Provider]
-    B --> H[MessageStateHandler]
+graph LR
+  U(User) --> C(Controller)
+
+  subgraph ExtensionCore
+    C --> T(Task)
+    T --> MS(MessageState)
+    T --> CM(ContextManager)
+    T --> TE(ToolExecutor)
+    T --> AP(APIProvider)
   end
 
-  subgraph "Pentest Docs (Workspace)"
-    I[journal.md]
-    J[attack-surface.md]
-    K[findings.md]
-    L[artifacts/]
+  subgraph STRIKE_Intel
+    XO(StrikeOrchestrator)
+    RO(ReconOrchestrator)
+    PE(PayloadEngine)
+    VC(VulnerabilityChainer)
+    AL(AdaptiveLearning)
+    JI(JSIntelligence)
+    EE(EvasionEngine)
+    ED(ExploitDeveloper)
   end
 
-  C -->|save artifacts & journal| M[DocumentationService]
-  M --> I
-  M --> J
-  M --> K
-  M --> L
+  TE --> XO
+  XO --> RO
+  XO --> PE
+  XO --> VC
+  XO --> AL
+  XO --> JI
+  XO --> EE
+  XO --> ED
 
-  D -. builds .-> N[Compact Context Digest]
-  N -. appended .-> G
+  subgraph Prompting
+    P1(system.ts)
+    P2(claude4.ts)
+    P3(attackModes.ts)
+  end
 
-  F -->|markdown of target pages| L
+  P1 --> AP
+  P2 --> AP
+  P3 --> AP
+  CM -.-> P1
+  XO -.-> P3
+
+  subgraph Tools
+    TF(tech_fingerprint)
+    WF(web_fetch)
+    WS(web_search)
+    BA(browser_action)
+    SAM(set_attack_mode)
+    RD(record_detection)
+    RG{{Recon Gate}}
+  end
+
+  TE --> TF
+  TE --> WF
+  TE --> WS
+  TE --> BA
+  TE --> RG
+  RG --> SAM
+  TE --> RD
+
+  subgraph Docs
+    J(journal.md)
+    A(attack-surface.md)
+    F(findings.md)
+    R(recon.md)
+    AR(artifacts/*)
+    XR(strike_report.md)
+    EX(exploits/*.py)
+  end
+
+  WF --> AR
+  TF --> AR
+  RO --> R
+  ED --> EX
+  XO --> XR
+  TE -.-> J
+  CM -.-> AR
+
+  subgraph UI
+    HUD(Header status chips)
+  end
+
+  TS[(TaskState)] --- T
+  TS --> HUD
+  XO -.-> HUD
 ```
 
 ## From GitHub to Running (Clean Setup)
@@ -126,12 +184,40 @@ Notes
 
 ## Usage
 
-1) Start a task (e.g., “Map the attack surface for target X”).
-2) Approve tool calls. Strike will:
-   - Save large outputs as artifacts under `docs/pentest/artifacts/`
-   - Update `journal.md` and `attack-surface.md`
-   - Keep the LLM prompt lean with compact digests
-3) For exploitation, let Strike generate minimal PoCs, review them, and approve as appropriate.
+### Elite-Level Autonomous Pentesting
+
+Strike now features **STRIKE Intelligence** - an advanced AI system that transforms basic vulnerability discovery into elite-level autonomous pentesting:
+
+**🧠 Intelligent Recon**: Auto-populates `recon.md` with comprehensive intelligence from tech fingerprinting, JS analysis, and endpoint discovery; `set_attack_mode` is gated until `recon.md` meets minimum content threshold
+
+**🎯 Context-Aware Payloads**: Generates smart payloads adapted to detected technology stack, WAF signatures, and previous failures  
+
+**⛓️ Vulnerability Chaining**: Automatically identifies how individual findings can be chained into critical attack paths
+
+**📚 Adaptive Learning**: Learns from failed attempts and builds target-specific profiles for improved success rates
+
+**🥷 Smart Evasion**: Implements advanced rate limiting, WAF bypass variations, and traffic randomization
+
+**💥 Exploit Development**: Transforms basic PoCs into weaponized, multi-stage exploits with anti-detection features
+
+### Basic Workflow
+
+1) **Start Assessment**: "Conduct elite-level pentest of target X"
+2) **STRIKE Orchestration**: The system will automatically:
+   - Execute intelligent reconnaissance and populate `recon.md`
+   - Analyze JavaScript for hidden endpoints and secrets
+   - Build target-specific attack surface maps
+   - Generate context-aware payloads with evasion techniques
+   - Chain vulnerabilities into high-impact attack scenarios
+   - Develop weaponized exploits with full documentation
+
+3) **Elite CTF/Pentester Flow**:
+   - `tech_fingerprint` → STRIKE analyzes tech stack and auto-populates intelligence
+   - `web_search` → STRIKE learns from top hacker writeups and CTF techniques
+   - `javascript_intel` → STRIKE extracts API routes, secrets, and framework details
+   - `set_attack_mode` → STRIKE provides intelligent recommendations with confidence scores (gated by recon)
+   - `record_detection` → STRIKE adapts future payloads based on detected protections
+   - Attack chains automatically discovered and exploited
 
 ## Documentation & Audit Trail
 
@@ -167,16 +253,22 @@ Notes
 
 - `src/core/prompts/system.ts`: Strike doctrine, phased workflow, context usage, PoC guidance
 - `src/core/prompts/model_prompts/claude4.ts`: Model-specific pentest prompt & cost-aware guidance
-- `src/core/pentest/DocumentationService.ts`: Creates/updates pentest docs; artifact saver; journaling API
+- `src/core/prompts/attackModes.ts`: Mode-specific sections (evidence-driven routing)
 - `src/core/context/context-management/ContextManager.ts`: Builds compact digest from pentest docs and appends to system prompt
-- `src/core/task/index.ts`: Injects digest into system prompt per request
-- `src/core/task/ToolExecutor.ts`: On `web_fetch`, saves content as artifact, journals action, returns short summary with path
+- `src/core/task/index.ts`: Injects attack-mode section & digest per request
+- `src/core/task/ToolExecutor.ts`: Executes tools (`tech_fingerprint`, `web_search`, `web_fetch`, `set_attack_mode`, `record_detection`, `browser_action`)
 
 ## Context Window Strategy
 
-- Inject a compact context digest from pentest docs rather than raw logs
+- Inject a compact context digest from pentest docs (recon/attack‑surface/findings/journal tails) instead of raw logs
+- Dynamic token‑scaled budgets: tail sizes are automatically sized to the current model's context window to minimize cost
 - Reference artifact paths; inline only short key lines
 - On phase shifts, condense prior phase and keep active target state + hypotheses
+
+## UI Ergonomics
+
+- Header status chips show Mode, Recon state, and detected protections (WAF/CSP/Rate‑limit)
+- Subtle glow accents for “hacker‑friendly” readability; purely visual, no logic impact
 
 ## Safety & Ethics
 
@@ -187,10 +279,10 @@ Notes
 
 ## Roadmap (Selected)
 
-- Phase awareness in state + “Active Hypotheses & Next Steps” injection
 - Perplexity & GitHub research adapters
 - Safe runners for nmap/masscan/amass/ffuf/nuclei/dalfox/sqlmap/hydra/nikto
 - Summarizers for larger tool outputs; priority-based findings injection
+- Deeper JS intelligence (source maps, router heuristics, API schema extraction)
 
 ## Licensing & Attribution
 
