@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" role="img" aria-label="Strike Architecture Diagram">
+  <style>
+    .box { fill: #0b1e39; stroke: #4aa3ff; stroke-width: 2; rx: 8; ry: 8; }
+    .title { fill: #0e2a52; stroke: #4aa3ff; stroke-width: 2; rx: 8; ry: 8; }
+    .text { fill: #e6f0ff; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; font-size: 14px; }
+    .heading { fill: #cfe6ff; font-weight: 700; font-size: 16px; }
+    .arrow { stroke: #9ed0ff; stroke-width: 2; marker-end: url(#arrow); }
+    .note { fill: #bfe0ff; font-size: 12px; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#9ed0ff" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="30" y="40" class="heading" font-size="22">STRIKE – Architecture Overview</text>
+
+  <!-- Extension Core Group -->
+  <rect x="40" y="70" width="560" height="250" class="title" />
+  <text x="60" y="95" class="heading">Extension Core</text>
+  <rect x="60" y="110" width="520" height="190" class="box" />
+  <text x="80" y="140" class="text">User → Controller → Task (Conversation + Orchestration)</text>
+  <text x="80" y="165" class="text">MessageStateHandler · ContextManager (dynamic compact digest)</text>
+  <text x="80" y="190" class="text">ToolExecutor · API Provider (Model)</text>
+  <text x="80" y="215" class="text">TaskState: reconCompleted · attackMode · detectedProtections · strikeSession</text>
+
+  <!-- STRIKE Intelligence Group -->
+  <rect x="800" y="70" width="560" height="300" class="title" />
+  <text x="820" y="95" class="heading">STRIKE Intelligence</text>
+  <rect x="820" y="110" width="520" height="240" class="box" />
+  <text x="840" y="140" class="text">StrikeOrchestrator (Master Brain) · ReconOrchestrator (Smart Recon)</text>
+  <text x="840" y="165" class="text">PayloadEngine (Context-Aware) · VulnerabilityChainer (Attack Chains)</text>
+  <text x="840" y="190" class="text">AdaptiveLearning (Failure Analysis) · JSIntelligence (AST + Secrets)</text>
+  <text x="840" y="215" class="text">EvasionEngine (WAF + Rate Limiting) · ExploitDeveloper (PoC → Weaponized)</text>
+  <text x="840" y="240" class="note">Intelligent recommendations feed attack mode prompts</text>
+
+  <!-- Tools and Gating -->
+  <rect x="40" y="360" width="560" height="200" class="title" />
+  <text x="60" y="385" class="heading">Tools and Gating</text>
+  <rect x="60" y="400" width="520" height="140" class="box" />
+  <text x="80" y="430" class="text">tech_fingerprint · web_fetch · web_search · browser_action</text>
+  <text x="80" y="455" class="text">record_detection · set_attack_mode (gated)</text>
+  <text x="80" y="480" class="note">Recon Gate: set_attack_mode enabled when docs/pentest/recon.md ≥ threshold</text>
+
+  <!-- Workspace Docs -->
+  <rect x="800" y="400" width="560" height="220" class="title" />
+  <text x="820" y="425" class="heading">Workspace Docs</text>
+  <rect x="820" y="440" width="520" height="160" class="box" />
+  <text x="840" y="470" class="text">docs/pentest/: journal.md · attack-surface.md · findings.md · recon.md</text>
+  <text x="840" y="495" class="text">artifacts/* · strike_report.md · exploits/*.py</text>
+  <text x="840" y="520" class="note">ContextManager appends compact tails; artifacts referenced by path</text>
+
+  <!-- Webview UI -->
+  <rect x="40" y="600" width="560" height="160" class="title" />
+  <text x="60" y="625" class="heading">Webview UI</text>
+  <rect x="60" y="640" width="520" height="100" class="box" />
+  <text x="80" y="670" class="text">Header status chips: Mode · Recon state · Protections (CSP/WAF/Rate)</text>
+  <text x="80" y="695" class="note">Visual-only accents; no logic impact</text>
+
+  <!-- Arrows -->
+  <line x1="600" y1="205" x2="820" y2="205" class="arrow" />
+  <line x1="300" y1="540" x2="300" y2="640" class="arrow" />
+  <line x1="1080" y1="350" x2="1080" y2="440" class="arrow" />
+  <line x1="600" y1="470" x2="820" y2="470" class="arrow" />
+  <line x1="1080" y1="600" x2="1080" y2="560" class="arrow" />
+
+  <!-- Legend -->
+  <text x="40" y="800" class="note">Legend: boxes are components; arrows indicate data/control flow. This static SVG is a fallback for GitHub renderers that do not support Mermaid in all contexts. The authoritative source is docs/pentest architecture in README.</text>
+</svg>

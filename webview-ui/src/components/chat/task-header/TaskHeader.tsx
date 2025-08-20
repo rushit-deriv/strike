@@ -43,8 +43,15 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	onClose,
 	onScrollToMessage,
 }) => {
-	const { apiConfiguration, currentTaskItem, checkpointTrackerErrorMessage, clineMessages, navigateToSettings, mode } =
-		useExtensionState()
+	const {
+		apiConfiguration,
+		currentTaskItem,
+		checkpointTrackerErrorMessage,
+		clineMessages,
+		navigateToSettings,
+		mode,
+		uiAttackStatus,
+	} = useExtensionState()
 	const [isTaskExpanded, setIsTaskExpanded] = useState(true)
 	const [isTextExpanded, setIsTextExpanded] = useState(false)
 	const [showSeeMore, setShowSeeMore] = useState(false)
@@ -53,6 +60,23 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 
 	const { selectedModelInfo } = useMemo(() => normalizeApiConfiguration(apiConfiguration, mode), [apiConfiguration, mode])
 	const contextWindow = selectedModelInfo?.contextWindow
+
+	// Visual-only status derived from extension state; does not influence logic
+	const statusMode = uiAttackStatus?.attackMode || "baseline"
+	const statusRecon = uiAttackStatus?.reconCompleted ? "Recon complete" : "Recon"
+	const statusBadges = useMemo(() => {
+		const badges: { label: string; title?: string }[] = []
+		if (uiAttackStatus?.detectedProtections?.wafVendorOrSignal) {
+			badges.push({ label: "WAF", title: uiAttackStatus.detectedProtections.wafVendorOrSignal })
+		}
+		if (uiAttackStatus?.detectedProtections?.cspPolicySnippet) {
+			badges.push({ label: "CSP", title: uiAttackStatus.detectedProtections.cspPolicySnippet })
+		}
+		if (uiAttackStatus?.detectedProtections?.rateLimitingObserved) {
+			badges.push({ label: "Rate‑limit" })
+		}
+		return badges
+	}, [uiAttackStatus])
 
 	// Open task header when checkpoint tracker error message is set
 	const prevErrorMessageRef = useRef(checkpointTrackerErrorMessage)
@@ -195,6 +219,66 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 											borderRadius: "2px",
 										}}
 									/>
+								</div>
+								{/* Visual-only pentest status row */}
+								<div
+									style={{
+										display: "flex",
+										gap: 8,
+										alignItems: "center",
+										flexWrap: "wrap",
+										filter: "drop-shadow(0 0 0.25rem rgba(0,0,0,0.2))",
+									}}>
+									<span
+										title="Current attack mode"
+										style={{
+											backgroundColor: "var(--vscode-editorInfo-foreground)",
+											color: "var(--vscode-badge-background)",
+											padding: "2px 6px",
+											borderRadius: 4,
+											fontSize: 11,
+											fontWeight: 600,
+											textTransform: "uppercase",
+											letterSpacing: 0.3,
+											boxShadow:
+												"0 0 10px color-mix(in srgb, var(--vscode-editorInfo-foreground) 35%, transparent)",
+											filter: "saturate(1.1)",
+										}}>
+										{statusMode}
+									</span>
+									<span
+										title="Recon status"
+										style={{
+											backgroundColor:
+												"color-mix(in srgb, var(--vscode-editorWarning-foreground) 70%, transparent)",
+											color: "var(--vscode-badge-background)",
+											padding: "2px 6px",
+											borderRadius: 4,
+											fontSize: 11,
+											fontWeight: 500,
+											boxShadow:
+												"0 0 10px color-mix(in srgb, var(--vscode-editorWarning-foreground) 30%, transparent)",
+										}}>
+										{statusRecon}
+									</span>
+									{statusBadges.map((b, i) => (
+										<span
+											key={`${b.label}-${i}`}
+											title={b.title}
+											style={{
+												backgroundColor:
+													"color-mix(in srgb, var(--vscode-editorError-foreground) 50%, transparent)",
+												color: "var(--vscode-badge-background)",
+												padding: "2px 6px",
+												borderRadius: 4,
+												fontSize: 11,
+												fontWeight: 500,
+												boxShadow:
+													"0 0 10px color-mix(in srgb, var(--vscode-editorError-foreground) 25%, transparent)",
+											}}>
+											{b.label}
+										</span>
+									))}
 								</div>
 							</HeroTooltip>
 							<HeroTooltip content="Maximum context window size for this model">

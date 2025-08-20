@@ -64,6 +64,17 @@ export interface ExtensionState {
 	localWindsurfRulesToggles: ClineRulesToggles
 	mcpResponsesCollapsed?: boolean
 	strictPlanModeEnabled?: boolean
+
+	// Visual-only pentest status (read-only; does not affect agent logic)
+	uiAttackStatus?: {
+		reconCompleted?: boolean
+		attackMode?: string
+		detectedProtections?: {
+			wafVendorOrSignal?: string
+			cspPolicySnippet?: string
+			rateLimitingObserved?: boolean
+		}
+	}
 }
 
 export interface ClineMessage {
