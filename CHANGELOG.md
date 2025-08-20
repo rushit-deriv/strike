@@ -1,5 +1,67 @@
 # Changelog
 
+## [3.26.0]
+
+- Add Z AI as a new API provider with GLM-4.5 and GLM-4.5 Air models, offering competitive performance with cost-effective pricing especially for Chinese language tasks (Thanks @jues!)
+- Add Cline Sonic Alpha model - experimental advanced model with 262K context window for complex coding tasks
+- Add support for LM Studio local models from v0 API endpoint with configurable max tokens
+- Fix Ollama context window configuration not being used in requests
+
+## [3.25.3]
+
+- Fix bug where 'Enable checkpoints' and 'Disable MCP Marketplace' settings would be reset to default on reload
+- Move the position of the focus chain edit button when a scrollbar is present. Make the pencil icon bigger and better centered.
+
+## [3.25.2]
+
+- Fix attempt_completion showing twice in chat due to partial logic not being handled correctly
+- Fix OpenRouter showing cline credits error after 402 response
+
+## [3.25.1]
+
+- Fix attempt_completion command showing twice in chat view when updating progress checklist
+- Fix bug where announcement banner could not be dismissed
+- Add GPT-OSS models to AWS Bedrock
+
+## [3.25.0]
+
+- **Focus Chain:** Automatically creates and maintains todo lists as you work with Cline, breaking down complex tasks into manageable steps with real-time progress tracking
+- **Auto Compact:** Intelligently manages conversation context to prevent token limit errors by automatically compacting older messages while preserving important context
+- **Deep Planning:** New `/deep-planning` slash command for structured 4-step implementation planning that integrates with Focus Chain for automatic progress tracking
+- Add support for 200k context window for Claude Sonnet 4 in OpenRouter and Cline providers
+- Add option to configure custom base URL for Requesty provider
+
+## [3.24.0]
+
+- Add OpenAI GPT-5 Chat(gpt-5-chat-latest)
+- Add custom browser arguments setting to allow passing flags to the Chrome executable for better headless compatibility.
+- Add 1m context window model support for claude sonnet 4
+- Fis the API Keys URL for Requesty
+- Set gpt5 max tokens to 8_192 to fix 'context window exceeded' error
+- Fix issue where fallback request to retrieve cost was not using correct auth token
+- Add OpenAI context window exceeded error handling
+- Calibrate input token counts when using anthropic models of sap ai core provider
+
+## [3.23.0]
+
+- Add caching support for Bedrock inferences using SAP AI Core and minor refactor
+- Improve visibility for mode switch background color on different themes
+- Fix terminal commands putting webview in blocked state
+
+## [3.22.0]
+
+- Implemented a retry strategy for Cerebras to handle rate limit issues due to its generation speed
+- Add support for GPT-5 models to SAP AI Core Provider
+- Support sending context to active webview when editor panels are opened.
+- Fix bug where running out of credits on Cline accounts would show '402 empty body' response instead of 'buy credits' component
+- Fix LiteLLM Proxy Provider Cost Tracking
+
+## [3.21.0]
+
+- Add support for GPT-5 model family including GPT-5, GPT-5 Mini, and GPT-5 Nano with prompt caching support and set GPT-5 as the new default model
+- Add "Take a Tour" button for new users to easily access the VSCode walkthrough and improve onboarding experience
+- Enhance plan mode response handling with better exploration parameter support
+
 ## [3.20.13]
 
 - Fix prompt caching support for Opus 4.1 on OpenRouter/Cline

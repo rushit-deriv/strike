@@ -5,19 +5,20 @@ import { DEFAULT_AUTO_APPROVAL_SETTINGS } from "@shared/AutoApprovalSettings"
 import { findLastIndex } from "@shared/array"
 import { DEFAULT_BROWSER_SETTINGS } from "@shared/BrowserSettings"
 import { DEFAULT_PLATFORM, type ExtensionState } from "@shared/ExtensionMessage"
+import { DEFAULT_FOCUS_CHAIN_SETTINGS } from "@shared/FocusChainSettings"
 import { DEFAULT_MCP_DISPLAY_MODE } from "@shared/McpDisplayMode"
 import type { UserInfo } from "@shared/proto/cline/account"
 import { EmptyRequest, StringRequest } from "@shared/proto/cline/common"
 import type { OpenRouterCompatibleModelInfo } from "@shared/proto/cline/models"
-import { type TerminalProfile, UpdateSettingsRequest } from "@shared/proto/cline/state"
+import { type TerminalProfile } from "@shared/proto/cline/state"
 import { WebviewProviderType as WebviewProviderTypeEnum, WebviewProviderTypeRequest } from "@shared/proto/cline/ui"
 import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import {
-	groqDefaultModelId,
-	groqModels,
 	basetenDefaultModelId,
 	basetenModels,
+	groqDefaultModelId,
+	groqModels,
 	type ModelInfo,
 	openRouterDefaultModelId,
 	openRouterDefaultModelInfo,
@@ -25,13 +26,7 @@ import {
 	requestyDefaultModelInfo,
 } from "../../../src/shared/api"
 import type { McpMarketplaceCatalog, McpServer, McpViewTab } from "../../../src/shared/mcp"
-import {
-	FileServiceClient,
-	McpServiceClient,
-	ModelsServiceClient,
-	StateServiceClient,
-	UiServiceClient,
-} from "../services/grpc-client"
+import { McpServiceClient, ModelsServiceClient, StateServiceClient, UiServiceClient } from "../services/grpc-client"
 import { convertTextMateToHljs } from "../utils/textMateToHljs"
 
 interface ExtensionStateContextType extends ExtensionState {
@@ -46,7 +41,6 @@ interface ExtensionStateContextType extends ExtensionState {
 	huggingFaceModels: Record<string, ModelInfo>
 	mcpServers: McpServer[]
 	mcpMarketplaceCatalog: McpMarketplaceCatalog
-	filePaths: string[]
 	totalTasksSize: number | null
 	availableTerminalProfiles: TerminalProfile[]
 
@@ -178,6 +172,8 @@ export const ExtensionStateContextProvider: React.FC<{
 		shouldShowAnnouncement: false,
 		autoApprovalSettings: DEFAULT_AUTO_APPROVAL_SETTINGS,
 		browserSettings: DEFAULT_BROWSER_SETTINGS,
+		focusChainSettings: DEFAULT_FOCUS_CHAIN_SETTINGS,
+		focusChainFeatureFlagEnabled: false,
 		preferredLanguage: "English",
 		openaiReasoningEffort: "medium",
 		mode: "act",
@@ -205,14 +201,13 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [didHydrateState, setDidHydrateState] = useState(false)
 	const [showWelcome, setShowWelcome] = useState(false)
 	const [theme, setTheme] = useState<Record<string, string>>()
-	const [filePaths, setFilePaths] = useState<string[]>([])
 	const [openRouterModels, setOpenRouterModels] = useState<Record<string, ModelInfo>>({
 		[openRouterDefaultModelId]: openRouterDefaultModelInfo,
 	})
 	const [totalTasksSize, setTotalTasksSize] = useState<number | null>(null)
 	const [availableTerminalProfiles, setAvailableTerminalProfiles] = useState<TerminalProfile[]>([])
 
-	const [openAiModels, setOpenAiModels] = useState<string[]>([])
+	const [openAiModels, _setOpenAiModels] = useState<string[]>([])
 	const [requestyModels, setRequestyModels] = useState<Record<string, ModelInfo>>({
 		[requestyDefaultModelId]: requestyDefaultModelInfo,
 	})
@@ -381,18 +376,6 @@ export const ExtensionStateContextProvider: React.FC<{
 			onComplete: () => {
 				console.log("MCP servers subscription completed")
 			},
-		})
-
-		// Subscribe to workspace file updates
-		workspaceUpdatesUnsubscribeRef.current = FileServiceClient.subscribeToWorkspaceUpdates(EmptyRequest.create({}), {
-			onResponse: (response) => {
-				console.log("[DEBUG] Received workspace update event from gRPC stream")
-				setFilePaths(response.values || [])
-			},
-			onError: (error) => {
-				console.error("Error in workspace updates subscription:", error)
-			},
-			onComplete: () => {},
 		})
 
 		// Set up settings button clicked subscription
@@ -653,7 +636,6 @@ export const ExtensionStateContextProvider: React.FC<{
 		huggingFaceModels,
 		mcpServers,
 		mcpMarketplaceCatalog,
-		filePaths,
 		totalTasksSize,
 		availableTerminalProfiles,
 		showMcp,
@@ -669,6 +651,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		localWorkflowToggles: state.localWorkflowToggles || {},
 		globalWorkflowToggles: state.globalWorkflowToggles || {},
 		enableCheckpointsSetting: state.enableCheckpointsSetting,
+		currentFocusChainChecklist: state.currentFocusChainChecklist,
 
 		// Navigation functions
 		navigateToMcp,

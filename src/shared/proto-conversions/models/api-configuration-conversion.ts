@@ -1,19 +1,19 @@
 import {
-	ApiConfiguration,
-	ApiProvider,
-	BedrockModelId,
-	ModelInfo,
-	OpenAiCompatibleModelInfo as AppOpenAiCompatibleModelInfo,
-	LiteLLMModelInfo as AppLiteLLMModelInfo,
-} from "../../api"
-import {
-	ModelsApiConfiguration as ProtoApiConfiguration,
-	ApiProvider as ProtoApiProvider,
 	LiteLLMModelInfo,
 	OpenAiCompatibleModelInfo,
 	OpenRouterModelInfo,
+	ModelsApiConfiguration as ProtoApiConfiguration,
+	ApiProvider as ProtoApiProvider,
 	ThinkingConfig,
 } from "@shared/proto/cline/models"
+import {
+	ApiConfiguration,
+	ApiProvider,
+	LiteLLMModelInfo as AppLiteLLMModelInfo,
+	OpenAiCompatibleModelInfo as AppOpenAiCompatibleModelInfo,
+	BedrockModelId,
+	ModelInfo,
+} from "../../api"
 
 // Convert application ThinkingConfig to proto ThinkingConfig
 function convertThinkingConfigToProto(config: ModelInfo["thinkingConfig"]): ThinkingConfig | undefined {
@@ -248,6 +248,8 @@ function convertApiProviderToProto(provider: string | undefined): ProtoApiProvid
 			return ProtoApiProvider.CLAUDE_CODE
 		case "huawei-cloud-maas":
 			return ProtoApiProvider.HUAWEI_CLOUD_MAAS
+		case "zai":
+			return ProtoApiProvider.ZAI
 		default:
 			return ProtoApiProvider.ANTHROPIC
 	}
@@ -318,6 +320,8 @@ function convertProtoToApiProvider(provider: ProtoApiProvider): ApiProvider {
 			return "claude-code"
 		case ProtoApiProvider.HUAWEI_CLOUD_MAAS:
 			return "huawei-cloud-maas"
+		case ProtoApiProvider.ZAI:
+			return "zai"
 		default:
 			return "anthropic"
 	}
@@ -329,7 +333,7 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		// Global configuration fields
 		apiKey: config.apiKey,
 		clineAccountId: config.clineAccountId,
-		taskId: config.taskId,
+		ulid: config.ulid,
 		liteLlmBaseUrl: config.liteLlmBaseUrl,
 		liteLlmApiKey: config.liteLlmApiKey,
 		liteLlmUsePromptCache: config.liteLlmUsePromptCache,
@@ -357,11 +361,13 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		ollamaApiKey: config.ollamaApiKey,
 		ollamaApiOptionsCtxNum: config.ollamaApiOptionsCtxNum,
 		lmStudioBaseUrl: config.lmStudioBaseUrl,
+		lmStudioMaxTokens: config.lmStudioMaxTokens,
 		geminiApiKey: config.geminiApiKey,
 		geminiBaseUrl: config.geminiBaseUrl,
 		openAiNativeApiKey: config.openAiNativeApiKey,
 		deepSeekApiKey: config.deepSeekApiKey,
 		requestyApiKey: config.requestyApiKey,
+		requestyBaseUrl: config.requestyBaseUrl,
 		togetherApiKey: config.togetherApiKey,
 		fireworksApiKey: config.fireworksApiKey,
 		fireworksModelMaxCompletionTokens: config.fireworksModelMaxCompletionTokens,
@@ -389,6 +395,8 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		sapAiCoreTokenUrl: config.sapAiCoreTokenUrl,
 		sapAiCoreBaseUrl: config.sapAiCoreBaseUrl,
 		huaweiCloudMaasApiKey: config.huaweiCloudMaasApiKey,
+		zaiApiLine: config.zaiApiLine,
+		zaiApiKey: config.zaiApiKey,
 
 		// Plan mode configurations
 		planModeApiProvider: config.planModeApiProvider ? convertApiProviderToProto(config.planModeApiProvider) : undefined,
@@ -461,7 +469,7 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		// Global configuration fields
 		apiKey: protoConfig.apiKey,
 		clineAccountId: protoConfig.clineAccountId,
-		taskId: protoConfig.taskId,
+		ulid: protoConfig.ulid,
 		liteLlmBaseUrl: protoConfig.liteLlmBaseUrl,
 		liteLlmApiKey: protoConfig.liteLlmApiKey,
 		liteLlmUsePromptCache: protoConfig.liteLlmUsePromptCache,
@@ -489,11 +497,13 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		ollamaApiKey: protoConfig.ollamaApiKey,
 		ollamaApiOptionsCtxNum: protoConfig.ollamaApiOptionsCtxNum,
 		lmStudioBaseUrl: protoConfig.lmStudioBaseUrl,
+		lmStudioMaxTokens: protoConfig.lmStudioMaxTokens,
 		geminiApiKey: protoConfig.geminiApiKey,
 		geminiBaseUrl: protoConfig.geminiBaseUrl,
 		openAiNativeApiKey: protoConfig.openAiNativeApiKey,
 		deepSeekApiKey: protoConfig.deepSeekApiKey,
 		requestyApiKey: protoConfig.requestyApiKey,
+		requestyBaseUrl: protoConfig.requestyBaseUrl,
 		togetherApiKey: protoConfig.togetherApiKey,
 		fireworksApiKey: protoConfig.fireworksApiKey,
 		fireworksModelMaxCompletionTokens: protoConfig.fireworksModelMaxCompletionTokens,
@@ -521,6 +531,8 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		sapAiCoreTokenUrl: protoConfig.sapAiCoreTokenUrl,
 		sapAiCoreBaseUrl: protoConfig.sapAiCoreBaseUrl,
 		huaweiCloudMaasApiKey: protoConfig.huaweiCloudMaasApiKey,
+		zaiApiLine: protoConfig.zaiApiLine,
+		zaiApiKey: protoConfig.zaiApiKey,
 
 		// Plan mode configurations
 		planModeApiProvider:

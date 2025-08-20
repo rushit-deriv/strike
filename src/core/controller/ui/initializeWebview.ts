@@ -1,15 +1,13 @@
-import type { Controller } from "../index"
-import { EmptyRequest, Empty } from "@shared/proto/cline/common"
-
-import { getAllExtensionState, getGlobalState, updateGlobalState } from "../../storage/state"
-import { sendOpenRouterModelsEvent } from "../models/subscribeToOpenRouterModels"
-import { sendMcpMarketplaceCatalogEvent } from "../mcp/subscribeToMcpMarketplaceCatalog"
-import { telemetryService } from "@/services/posthog/PostHogClientProvider"
-import { OpenRouterCompatibleModelInfo } from "@shared/proto/cline/models"
 import { McpMarketplaceCatalog } from "@shared/mcp"
-import { refreshOpenRouterModels } from "../models/refreshOpenRouterModels"
-import { refreshGroqModels } from "../models/refreshGroqModels"
+import { Empty, EmptyRequest } from "@shared/proto/cline/common"
+import { OpenRouterCompatibleModelInfo } from "@shared/proto/cline/models"
+import { featureFlagsService, telemetryService } from "@/services/posthog/PostHogClientProvider"
+import type { Controller } from "../index"
+import { sendMcpMarketplaceCatalogEvent } from "../mcp/subscribeToMcpMarketplaceCatalog"
 import { refreshBasetenModels } from "../models/refreshBasetenModels"
+import { refreshGroqModels } from "../models/refreshGroqModels"
+import { refreshOpenRouterModels } from "../models/refreshOpenRouterModels"
+import { sendOpenRouterModelsEvent } from "../models/subscribeToOpenRouterModels"
 
 /**
  * Initialize webview when it launches
@@ -17,11 +15,8 @@ import { refreshBasetenModels } from "../models/refreshBasetenModels"
  * @param request The empty request
  * @returns Empty response
  */
-export async function initializeWebview(controller: Controller, request: EmptyRequest): Promise<Empty> {
+export async function initializeWebview(controller: Controller, _request: EmptyRequest): Promise<Empty> {
 	try {
-		// Populate file paths for workspace tracker (don't await)
-		controller.workspaceTracker?.populateFilePaths()
-
 		// Post last cached models in case the call to endpoint fails
 		controller.readOpenRouterModels().then((openRouterModels) => {
 			if (openRouterModels) {
@@ -34,7 +29,7 @@ export async function initializeWebview(controller: Controller, request: EmptyRe
 			if (response && response.models) {
 				// Update model info in state (this needs to be done here since we don't want to update state while settings is open, and we may refresh models there)
 				const apiConfiguration = controller.cacheService.getApiConfiguration()
-				const { planActSeparateModelsSetting } = await getAllExtensionState(controller.context)
+				const planActSeparateModelsSetting = controller.cacheService.getGlobalStateKey("planActSeparateModelsSetting")
 				const currentMode = await controller.getCurrentMode()
 
 				if (planActSeparateModelsSetting) {
@@ -80,7 +75,7 @@ export async function initializeWebview(controller: Controller, request: EmptyRe
 			if (response && response.models) {
 				// Update model info in state for Groq (this needs to be done here since we don't want to update state while settings is open, and we may refresh models there)
 				const apiConfiguration = controller.cacheService.getApiConfiguration()
-				const { planActSeparateModelsSetting } = await getAllExtensionState(controller.context)
+				const planActSeparateModelsSetting = controller.cacheService.getGlobalStateKey("planActSeparateModelsSetting")
 				const currentMode = await controller.getCurrentMode()
 
 				if (planActSeparateModelsSetting) {
@@ -125,7 +120,9 @@ export async function initializeWebview(controller: Controller, request: EmptyRe
 		refreshBasetenModels(controller, EmptyRequest.create()).then(async (response) => {
 			if (response && response.models) {
 				// Update model info in state for Baseten (this needs to be done here since we don't want to update state while settings is open, and we may refresh models there)
-				const { apiConfiguration, planActSeparateModelsSetting } = await getAllExtensionState(controller.context)
+				const apiConfiguration = controller.cacheService.getApiConfiguration()
+				const planActSeparateModelsSetting = controller.cacheService.getGlobalStateKey("planActSeparateModelsSetting")
+
 				const currentMode = await controller.getCurrentMode()
 
 				if (planActSeparateModelsSetting) {
@@ -135,7 +132,7 @@ export async function initializeWebview(controller: Controller, request: EmptyRe
 					const modelId = apiConfiguration[modelIdField]
 
 					if (modelId && response.models[modelId]) {
-						await updateGlobalState(controller.context, modelInfoField, response.models[modelId])
+						controller.cacheService.setGlobalState(modelInfoField, response.models[modelId])
 						await controller.postStateToWebview()
 					}
 				} else {
@@ -145,12 +142,12 @@ export async function initializeWebview(controller: Controller, request: EmptyRe
 
 					// Update plan mode model info if we have a model ID
 					if (planModelId && response.models[planModelId]) {
-						await updateGlobalState(controller.context, "planModeBasetenModelInfo", response.models[planModelId])
+						controller.cacheService.setGlobalState("planModeBasetenModelInfo", response.models[planModelId])
 					}
 
 					// Update act mode model info if we have a model ID
 					if (actModelId && response.models[actModelId]) {
-						await updateGlobalState(controller.context, "actModeBasetenModelInfo", response.models[actModelId])
+						controller.cacheService.setGlobalState("actModeBasetenModelInfo", response.models[actModelId])
 					}
 
 					// Post state update if we updated any model info
@@ -166,12 +163,12 @@ export async function initializeWebview(controller: Controller, request: EmptyRe
 		// (see normalizeApiConfiguration > openrouter)
 		// Prefetch marketplace and OpenRouter models
 
-		// Send cached MCP marketplace catalog if available
-		getGlobalState(controller.context, "mcpMarketplaceCatalog").then((mcpMarketplaceCatalog) => {
-			if (mcpMarketplaceCatalog) {
-				sendMcpMarketplaceCatalogEvent(mcpMarketplaceCatalog as McpMarketplaceCatalog)
-			}
-		})
+		// Send stored MCP marketplace catalog if available
+		const mcpMarketplaceCatalog = controller.cacheService.getGlobalStateKey("mcpMarketplaceCatalog")
+
+		if (mcpMarketplaceCatalog) {
+			sendMcpMarketplaceCatalogEvent(mcpMarketplaceCatalog as McpMarketplaceCatalog)
+		}
 
 		// Silently refresh MCP marketplace catalog
 		controller.silentlyRefreshMcpMarketplace()
@@ -182,6 +179,15 @@ export async function initializeWebview(controller: Controller, request: EmptyRe
 			const isOptedIn = telemetrySetting !== "disabled"
 			telemetryService.updateTelemetryState(isOptedIn)
 		})
+
+		// Refresh focus chain remote flag on webview init
+		featureFlagsService
+			.getFocusChainEnabled()
+			.then(async (enabled: boolean) => {
+				controller.cacheService.setGlobalState("focusChainFeatureFlagEnabled", enabled)
+				await controller.postStateToWebview()
+			})
+			.catch((err: any) => console.error("Failed to refresh focus chain remote flag on webview init", err))
 
 		return Empty.create({})
 	} catch (error) {

@@ -1,11 +1,13 @@
-import { Controller } from ".."
+import { GlobalFileNames } from "@core/storage/disk"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { OpenRouterCompatibleModelInfo, OpenRouterModelInfo } from "@shared/proto/cline/models"
-import axios from "axios"
-import path from "path"
-import fs from "fs/promises"
 import { fileExistsAtPath } from "@utils/fs"
-import { GlobalFileNames } from "@core/storage/disk"
+import axios from "axios"
+import cloneDeep from "clone-deep"
+import fs from "fs/promises"
+import path from "path"
+import { CLAUDE_SONNET_4_1M_TIERS, clineMicrowaveAlphaModelInfo, openRouterClaudeSonnet41mModelId } from "@/shared/api"
+import { Controller } from ".."
 
 /**
  * Refreshes the OpenRouter models and returns the updated model list
@@ -115,6 +117,12 @@ export async function refreshOpenRouterModels(
 						modelInfo.outputPrice = 3
 						modelInfo.contextWindow = 131_000
 						break
+					case "openai/gpt-5":
+					case "openai/gpt-5-chat":
+					case "openai/gpt-5-mini":
+					case "openai/gpt-5-nano":
+						modelInfo.maxTokens = 8_192 // 128000 breaks context window truncation
+						break
 					default:
 						if (rawModel.id.startsWith("openai/")) {
 							modelInfo.cacheReadsPrice = parsePrice(rawModel.pricing?.input_cache_read)
@@ -134,7 +142,31 @@ export async function refreshOpenRouterModels(
 				}
 
 				models[rawModel.id] = modelInfo
+
+				// add custom :1m model variant
+				if (rawModel.id === "anthropic/claude-sonnet-4") {
+					const claudeSonnet41mModelInfo = cloneDeep(modelInfo)
+					claudeSonnet41mModelInfo.contextWindow = 1_000_000 // limiting providers to those that support 1m context window
+					claudeSonnet41mModelInfo.tiers = CLAUDE_SONNET_4_1M_TIERS
+					models[openRouterClaudeSonnet41mModelId] = claudeSonnet41mModelInfo
+				}
 			}
+
+			// Add hardcoded cline/sonic model
+			models["cline/sonic"] = OpenRouterModelInfo.create({
+				maxTokens: clineMicrowaveAlphaModelInfo.maxTokens ?? 0,
+				contextWindow: clineMicrowaveAlphaModelInfo.contextWindow ?? 0,
+				supportsImages: clineMicrowaveAlphaModelInfo.supportsImages ?? false,
+				supportsPromptCache: clineMicrowaveAlphaModelInfo.supportsPromptCache ?? false,
+				inputPrice: clineMicrowaveAlphaModelInfo.inputPrice ?? 0,
+				outputPrice: clineMicrowaveAlphaModelInfo.outputPrice ?? 0,
+				cacheWritesPrice: clineMicrowaveAlphaModelInfo.cacheWritesPrice ?? 0,
+				cacheReadsPrice: clineMicrowaveAlphaModelInfo.cacheReadsPrice ?? 0,
+				description: clineMicrowaveAlphaModelInfo.description ?? "",
+				thinkingConfig: clineMicrowaveAlphaModelInfo.thinkingConfig ?? undefined,
+				supportsGlobalEndpoint: clineMicrowaveAlphaModelInfo.supportsGlobalEndpoint ?? undefined,
+				tiers: clineMicrowaveAlphaModelInfo.tiers ?? [],
+			})
 		} else {
 			console.error("Invalid response from OpenRouter API")
 		}

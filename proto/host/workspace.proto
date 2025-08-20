@@ -10,12 +10,20 @@ import "cline/common.proto";
 service WorkspaceService {
   // Returns a list of the top level directories of the workspace.
   rpc getWorkspacePaths(GetWorkspacePathsRequest) returns (GetWorkspacePathsResponse);
+
   // Saves an open document if it's open in the editor and has unsaved changes. 
   // Returns true if the document was saved, returns false if the document was not found, or did not
   // need to be saved.
   rpc saveOpenDocumentIfDirty(SaveOpenDocumentIfDirtyRequest) returns (SaveOpenDocumentIfDirtyResponse);
+
   // Get diagnostics from the workspace.
   rpc getDiagnostics(GetDiagnosticsRequest) returns (GetDiagnosticsResponse);
+
+  // Makes the problems panel/pane visible in the IDE and focuses it.
+  rpc openProblemsPanel(OpenProblemsPanelRequest) returns (OpenProblemsPanelResponse);
+
+  // Opens the IDE file explorer panel and selects a file or directory.
+  rpc openInFileExplorerPanel(OpenInFileExplorerPanelRequest) returns (OpenInFileExplorerPanelResponse); 
 }
 
 message GetWorkspacePathsRequest {
@@ -44,34 +52,13 @@ message GetDiagnosticsRequest {
 }
 
 message GetDiagnosticsResponse {
-  repeated FileDiagnostics file_diagnostics = 1;
+  repeated cline.FileDiagnostics file_diagnostics = 1;
 }
 
-message FileDiagnostics {
-  string file_path = 1;
-  repeated Diagnostic diagnostics = 2;
-}
+message OpenProblemsPanelRequest {}
+message OpenProblemsPanelResponse {}
 
-message Diagnostic {
-  string message = 1;
-  DiagnosticRange range = 2;
-  DiagnosticSeverity severity = 3;
-  optional string source = 4;
+message OpenInFileExplorerPanelRequest {
+  string path = 1;
 }
-
-message DiagnosticRange {
-  DiagnosticPosition start = 1;
-  DiagnosticPosition end = 2;
-}
-
-message DiagnosticPosition {
-  int32 line = 1;
-  int32 character = 2;
-}
-
-enum DiagnosticSeverity {
-  DIAGNOSTIC_ERROR = 0;
-  DIAGNOSTIC_WARNING = 1;
-  DIAGNOSTIC_INFORMATION = 2;
-  DIAGNOSTIC_HINT = 3;
-}
+message OpenInFileExplorerPanelResponse {}

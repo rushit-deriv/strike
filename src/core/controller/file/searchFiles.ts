@@ -1,8 +1,8 @@
-import { Controller } from ".."
-import { FileSearchRequest, FileSearchResults } from "@shared/proto/cline/file"
 import { searchWorkspaceFiles } from "@services/search/file-search"
-import { getWorkspacePath } from "@utils/path"
+import { FileSearchRequest, FileSearchResults, FileSearchType } from "@shared/proto/cline/file"
 import { convertSearchResultsToProtoFileInfos } from "@shared/proto-conversions/file/search-result-conversion"
+import { getWorkspacePath } from "@utils/path"
+import { Controller } from ".."
 
 /**
  * Searches for files in the workspace with fuzzy matching
@@ -23,11 +23,20 @@ export async function searchFiles(_controller: Controller, request: FileSearchRe
 	}
 
 	try {
+		// Map enum to string for the search service
+		let selectedTypeString: "file" | "folder" | undefined
+		if (request.selectedType === FileSearchType.FILE) {
+			selectedTypeString = "file"
+		} else if (request.selectedType === FileSearchType.FOLDER) {
+			selectedTypeString = "folder"
+		}
+
 		// Call file search service with query from request
 		const searchResults = await searchWorkspaceFiles(
 			request.query || "",
 			workspacePath,
 			request.limit || 20, // Use default limit of 20 if not specified
+			selectedTypeString,
 		)
 
 		// Convert search results to proto FileInfo objects using the conversion function
