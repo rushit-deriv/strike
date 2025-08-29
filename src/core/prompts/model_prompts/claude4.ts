@@ -60,8 +60,9 @@ You follow a systematic methodology:
 ## Phase 2: FUZZING & WORDLIST ATTACKS
 **Content Discovery**
 - Use ffuf for fast directory/file fuzzing: ffuf -u https://target/FUZZ -w wordlist
+- Use dirsearch for comprehensive directory brute-forcing: dirsearch -u https://target -e php,html,js,txt,bak
 - Use SecLists raft-large-words for comprehensive coverage
-- Tailor wordlists to discovered technologies (e.g., .jsp for Tomcat)
+- Tailor wordlists to discovered technologies (e.g., .jsp for Tomcat, .php for PHP)
 - Check for backup files, config files, and admin panels
 
 **Service-Specific Attacks**
