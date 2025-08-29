@@ -351,7 +351,7 @@
 		"clean": "rimraf dist dist-standalone webview-ui/build src/generated out/",
 		"compile-tests": "node ./scripts/build-tests.js",
 		"watch-tests": "tsc -p . -w --outDir out",
-		"check-types": "npm run protos && npx tsc --noEmit && cd webview-ui && npx tsc -b --noEmit",
+		"check-types": "npm run protos && npx tsc --noEmit && cd webview-ui && npx tsc --noEmit",
 		"lint": "eslint src --ext ts && eslint webview-ui/src --ext ts && buf lint && cd webview-ui && npm run lint",
 		"format": "prettier . --check",
 		"format:fix": "prettier . --write",
@@ -378,7 +378,7 @@
 		"docs:rename-file": "cd docs && npm run rename",
 		"report-issue": "node scripts/report-issue.js",
 		"pentest:install": "bash scripts/install-pentest-tools.sh",
-		"pentest:verify": "bash -lc 'for t in nmap masscan amass ffuf nuclei nikto sqlmap hydra dalfox wappalyzer; do printf \"%-12s : \" $t; if command -v $t >/dev/null 2>&1; then echo yes; else echo no; fi; done'"
+		"pentest:verify": "bash -lc 'for t in nmap masscan amass ffuf nuclei nikto sqlmap hydra dalfox wappalyzer dirsearch; do printf \"%-12s : \" $t; if command -v $t >/dev/null 2>&1; then echo yes; else echo no; fi; done'"
 	},
 	"lint-staged": {
 		"*": [
